@@ -1,0 +1,9 @@
+1=y1
+2=z
+3=Func1
+4=x
+5=w
+6=Func2
+7=n
+8=global
+9=hola

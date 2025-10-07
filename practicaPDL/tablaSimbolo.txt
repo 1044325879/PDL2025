@@ -1,0 +1,29 @@
+CONTENIDOS DE LA TABLA #1 (global):
+*'y1'
++Tipo:'int'
++Despl:'0'
+
+*'z'
++Tipo:'string'
++Despl:'1'
+
+*'Func1'
++Tipo:'function'
++Despl:'-'
++numParam:'0'
++TipoRetorno:'int'
++EtiqFuncion:'Func1'
+
+*'Func2'
++Tipo:'function'
++Despl:'-'
++numParam:'0'
++TipoRetorno:'int'
++EtiqFuncion:'Func2'
+
+CONTENIDOS DE LA TABLA #2 (Func1):
+*'w'
++Tipo:'boolean'
++Despl:'0'
+
+CONTENIDOS DE LA TABLA #3 (Func2):

@@ -1,0 +1,23 @@
+var int a ;
+var  int   b  ;
+var boolean bbb ;
+a = 3;
+b=a					    		 	 	 	 	 	 	 	 	 	 	 	 	 	 	 													;
+	var
+		boolean
+				c
+					;
+c = a != b;
+if (c) bbb = bbb ||c;
+
+var int aaaa;
+var string ssss;
+var boolean bbbb;
+
+
+aaaa = 55  ; 
+
+
+var int  _variable ;a = a + b;
+output a ;
+output b;

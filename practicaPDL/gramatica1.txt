@@ -1,0 +1,69 @@
+Terminales = { boolean for function if input int output return string var void constante_entera id cadena += = , ; ( ) { } + || != }
+
+NoTerminales = { S A B B1 C D E E1 E2 F F1 F1_1 F2 G G1 G1_1 H I I1 I2 }
+
+Axioma = S
+
+Producciones = {
+S -> A
+A -> B A
+A -> lambda
+
+B -> var C id B1
+B1 -> ;
+B1 -> = D ;
+
+B -> if ( E ) F
+B -> for ( G ) { H }
+B -> function C id ( I ) { H }
+B -> F
+
+C -> int
+C -> boolean
+C -> string
+C -> void
+
+D -> constante_entera
+D -> id
+D -> cadena
+
+E -> E1 E2
+E1 -> D
+E2 -> != E1 E2
+E2 -> || E1 E2
+E2 -> lambda
+
+F -> return ( F2 ) ;
+F -> input ( F2 ) ;
+F -> output ( F2 ) ;
+F -> F1
+
+F1 -> id F1_1
+F1_1 -> = E ;
+F1_1 -> += E ;
+F1_1 -> ( F2 ) ;
+
+F2 -> D
+F2 -> lambda
+
+
+G -> G1 ; E ; G1
+G1 -> id G1_1
+G1_1 -> = D
+G1_1 -> += D
+G1 -> var C id = D
+G1 -> lambda
+
+H -> B H
+H -> lambda
+
+I -> void I2
+I2 -> id I1
+I2 -> lambda
+I -> int id I1
+I -> boolean id I1
+I -> string id I1
+
+I1 -> , C id I1
+I1 -> lambda
+}
