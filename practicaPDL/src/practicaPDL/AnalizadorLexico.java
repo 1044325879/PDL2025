@@ -7,6 +7,9 @@ public class AnalizadorLexico {
 
     private static List<String> errorList = new ArrayList<>();
     public static boolean correcto = true;
+    
+    private static final int INT_MAX=32767;
+    private static final double REAL_MAX=117549436.0;
 
     public AnalizadorLexico(String ficheroEntrada) {
 
@@ -17,15 +20,30 @@ public class AnalizadorLexico {
         String ficheroTokenLinea = "tokenLinea.txt";
 
         try (BufferedReader br = new BufferedReader(new FileReader(ficheroEntrada))) {
-            List<Token> tokens = new ArrayList<>();
-            List<Integer> tokenLineas = new ArrayList<>();
+            //lista para tokens
+        	List<Token> tokens = new ArrayList<>();
+            //lista para saber linea que esta cada token
+        	List<Integer> tokenLineas = new ArrayList<>();
+        	//map que contiene datos de tabla de simbolo
             Map<String, Integer> tablaSimbolo = new HashMap<>();
             Map<Integer, String> tablaSimbolo2 = new LinkedHashMap<>();
+            //para identificador
             int id = 1;
+            //num tabla de simbolo
             int numTabla = 1;
+            //para situar la linea
             int numLinea = 0;
+            
+            //conjunto de palabras reservadas del MyJS
+            Set<String> reservadas = new HashSet<>(Arrays.asList(
+                "boolean","break","case","float","function","if","int","let",
+                "read","return","string","switch","void","write"
+            ));
+            //contenido de palabras que hay en esta linea
             String line;
+            //hasta que no llegamos al final
             while ((line = br.readLine()) != null) {
+            	//situamos en linea actual
                 numLinea++;
 
                 // para comentarios
@@ -35,130 +53,161 @@ public class AnalizadorLexico {
                 }
 
                 // para separar los signos y las palabras
-                String regex ="(?=[(){};,+=!|?])|(?<=[(){};,+=!|?])";
+                String regex = "(?=[(){};,:+=!|])|(?<=[(){};,:+=!|])";
                 String[] palabras = line.split("\\s+|" + regex);
+                
                 for (int i = 0; i < palabras.length; i++) {
                     String palabra = palabras[i].trim();
                     if (palabra.isEmpty()) continue;
+                    //operadores especiales
+                    // ++
+                    if(i+1 < palabras.length && palabra.equals("+")&&palabras[i+1].equals("+")) {
+                    	tokens.add(Token.AUTOINCREMENTO);//++
+                    	tokenLineas.add(numLinea);
+                    	i++;
+                    	continue;
+                    }
+                    
+                    //!=
+                    if(i+1 < palabras.length && palabra.equals("!")&&palabras[i+1].equals("=")) {
+                    	tokens.add(Token.DISTINTO);//!=
+                    	tokenLineas.add(numLinea);
+                    	i++;
+                    	continue;
+                    }
+                    
+                    //||
+                    if(i+1 < palabras.length && palabra.equals("|")&&palabras[i+1].equals("|")) {
+                    	tokens.add(Token.O_LOGICO);//||
+                    	tokenLineas.add(numLinea);
+                    	i++;
+                    	continue;
+                    }
+                    
+                    // otros operadores
+                    if (palabra.equals("+")) {
+                        tokens.add(Token.SUMA); 
+                        tokenLineas.add(numLinea);
+                        continue;
+                    }
+                    if (palabra.equals("=")) {
+                        tokens.add(Token.IGUAL); 
+                        tokenLineas.add(numLinea);
+                        continue;
+                    }
+                    if (palabra.equals(",")) {
+                        tokens.add(Token.COMA); 
+                        tokenLineas.add(numLinea);
+                        continue;
+                    }
+                    if (palabra.equals(";")) {
+                        tokens.add(Token.PUNTO_COMA); 
+                        tokenLineas.add(numLinea);
+                        continue;
+                    }
+                    if (palabra.equals(":")) {
+                        tokens.add(Token.DOS_PUNTOS); 
+                        tokenLineas.add(numLinea);
+                        continue;
+                    }
+                    if (palabra.equals("(")) {
+                        tokens.add(Token.PARENTESISA); 
+                        tokenLineas.add(numLinea);
+                        continue;
+                    }
+                    if (palabra.equals(")")) {
+                        tokens.add(Token.PARENTESISC); 
+                        tokenLineas.add(numLinea);
+                        continue;
+                    }
+                    if (palabra.equals("{")) {
+                        tokens.add(Token.LLAVEA); 
+                        tokenLineas.add(numLinea);
+                        continue;
+                    }
+                    if (palabra.equals("}")) {
+                        tokens.add(Token.LLAVEC); 
+                        tokenLineas.add(numLinea);
+                        continue;
+                    }
 
-                    // output/input
-                    if (palabra.equals("output") || palabra.equals("input")) {
-                        if (palabra.equals("output")) {
-                        	tokens.add(Token.OUTPUT);
-                        	tokenLineas.add(numLinea);
+                    //constante real
+                    //d+ . d+
+                    if(palabra.matches("\\d+\\.\\d+")) {
+                    	try {
+                    		//transformar a double
+                    		double valor=Double.parseDouble(palabra);
+                    		if(valor<=REAL_MAX) {
+                    			tokens.add(new Token("constr", palabra));
+                    		}else {
+                    			reportError(numLinea, "Error: constante real fuera del rango " + palabra);
+                    		}
+                    	}catch (NumberFormatException ex) {
+                            reportError(numLinea, "Error: real inválido " + palabra);
                         }
-                        else {
-                        	tokens.add(Token.INPUT);
-                        	tokenLineas.add(numLinea);
+                    	continue;
+                    }
+                    
+                    // constante entera
+                    //d+
+                    if (palabra.matches("\\d+")) {
+                    	try {
+                    		int value = Integer.parseInt(palabra);
+                            if (value >INT_MAX || value< -INT_MAX) {
+                                reportError(numLinea, "Error: constante entera fuera del rango " + palabra);
+                            }
+                            tokens.add(new Token("conste", palabra));
+                            tokenLineas.add(numLinea);
+                    	}catch (NumberFormatException ex) {
+                            reportError(numLinea, "Error: entera inválida " + palabra);
                         }
-
-                        if (i + 1 < palabras.length && palabras[i + 1].startsWith("\"")) {
-                            String texto = palabras[++i];
-                            boolean cerrado = false;
-                            if (texto.endsWith("\"")) {
-                                String contenido = "";
-                                if (texto.length() > 1) {
-                                    contenido = texto.substring(1, texto.length() - 1);
-                                }
+                    	continue;
+                    }
+  
+                    // cadena
+                    if (palabra.startsWith("\"")) {
+                        StringBuilder sb = new StringBuilder();
+                        int contador = 0;
+                        //quitar la primera "
+                        String frag = palabra.substring(1);
+                        if (palabra.endsWith("\"") && palabra.length() > 1) {
+                            // caso "..."
+                            String contenido = frag.substring(0, frag.length() - 1);
+                            contador = contenido.length();
+                            if (contador <= 64) {
                                 tokens.add(new Token("cadena", "\"" + contenido + "\""));
                                 tokenLineas.add(numLinea);
-                                cerrado = true;
                             } else {
-                                StringBuilder sb = new StringBuilder(texto.substring(1));
-                                while (i + 1 < palabras.length && !palabras[i + 1].endsWith("\"")) {
-                                    sb.append(" ").append(palabras[++i]);
-                                }
-                                if (i + 1 < palabras.length) {
-                                    sb.append(" ").append(palabras[++i], 0, palabras[i].length() - 1);
-                                    tokens.add(new Token("cadena", "\""+sb.toString()+"\""));
-                                    tokenLineas.add(numLinea);
+                                reportError(numLinea, "Error: Longitud de cadena excedida (>64)");
+                            }
+                        } else {
+                            sb.append(frag);
+                            contador += frag.length();
+                            boolean cerrado = false;
+                            while (i + 1 < palabras.length) {
+                                String siguiente = palabras[++i];
+                                if (siguiente.endsWith("\"")) {
+                                    // último fragmento
+                                    String cuerpo = siguiente.substring(0, siguiente.length() - 1);
+                                    contador += 1 /*espacio*/ + cuerpo.length();
+                                    sb.append(" ").append(cuerpo);
                                     cerrado = true;
+                                    break;
+                                } else {
+                                    contador += 1 /*espacio*/ + siguiente.length();
+                                    sb.append(" ").append(siguiente);
                                 }
                             }
                             if (!cerrado) {
                                 reportError(numLinea, "Error: cadena sin comillas de cierre");
+                            } else {
+                                if (contador <= 64) {
+                                    tokens.add(new Token("cadena", "\"" + sb.toString() + "\""));
+                                    tokenLineas.add(numLinea);
+                                } else {
+                                    reportError(numLinea, "Error: Longitud de cadena excedida (>64)");
+                                }
                             }
-                        }
-                        continue;
-                    }
-
-                    // operadores especiales
-                    if (i + 1 < palabras.length && palabra.equals("+") && palabras[i + 1].equals("=")) {
-                        tokens.add(Token.OPERADOR1);  // +=
-                        tokenLineas.add(numLinea);
-                        i++;
-                        continue;
-                    } else if (i + 1 < palabras.length && palabra.equals("!") && palabras[i + 1].equals("=")) {
-                        tokens.add(Token.DISTINTO);   // !=
-                        tokenLineas.add(numLinea);
-                        i++;
-                        continue;
-                    } else if (i + 1 < palabras.length && palabra.equals("|") && palabras[i + 1].equals("|")) {
-                        tokens.add(Token.O_LOGICO);   // ||
-                        tokenLineas.add(numLinea);
-                        i++;
-                        continue;
-                    }
-                    // otros operadores
-                    else if (palabra.equals("+")) {
-                        tokens.add(Token.SUMA); 
-                        tokenLineas.add(numLinea);continue;
-                    } else if (palabra.equals("=")) {
-                        tokens.add(Token.OPERADOR2); 
-                        tokenLineas.add(numLinea);continue;
-                    } else if (palabra.equals(",")) {
-                        tokens.add(Token.COMA); 
-                        tokenLineas.add(numLinea);continue;
-                    } else if (palabra.equals(";")) {
-                        tokens.add(Token.PUNTOCOMA); 
-                        tokenLineas.add(numLinea);continue;
-                    } else if (palabra.equals("(")) {
-                        tokens.add(Token.PARENTESISA); 
-                        tokenLineas.add(numLinea);continue;
-                    } else if (palabra.equals(")")) {
-                        tokens.add(Token.PARENTESISC); 
-                        tokenLineas.add(numLinea);continue;
-                    } else if (palabra.equals("{")) {
-                        tokens.add(Token.LLAVEA); 
-                        tokenLineas.add(numLinea);continue;
-                    } else if (palabra.equals("}")) {
-                        tokens.add(Token.LLAVEC); 
-                        tokenLineas.add(numLinea);continue;
-                    }
-
-                    // constante entera
-                    if (palabra.matches("\\d+")) {
-                        int value = Integer.parseInt(palabra);
-                        if (value > 32767 || value < -32768) {
-                            reportError(numLinea, "Error: constante entera fuera del rango " + palabra);
-                        }
-                        tokens.add(new Token("constante_entera", palabra));
-                        tokenLineas.add(numLinea);
-                        continue;
-                    }
-
-                    // cadena
-                    if (palabra.startsWith("\"")) {
-                        StringBuilder sb = new StringBuilder(palabra.substring(1));
-                        boolean cerrado = false;
-                        if (palabra.endsWith("\"") && palabra.length() > 1) {
-                            tokens.add(new Token("cadena", "\""+sb.substring(0, sb.length() - 1)+"\""));
-                            tokenLineas.add(numLinea);
-                            cerrado = true;
-                        } else {
-                            while (i + 1 < palabras.length && !palabras[i + 1].endsWith("\"")) {
-                                sb.append(" ").append(palabras[++i]);
-                            }
-                            if (i + 1 < palabras.length) {
-                                sb.append(" ").append(palabras[++i], 0, palabras[i].length() - 1);
-                                cerrado = true;
-                            }
-                        }
-                        if (cerrado) {
-                            tokens.add(new Token("cadena", "\""+sb.toString()+"\""));
-                            tokenLineas.add(numLinea);
-                        } else {
-                            reportError(numLinea, "Error: cadena sin comillas de cierre");
                         }
                         continue;
                     }
@@ -168,8 +217,14 @@ public class AnalizadorLexico {
                         case "boolean": 
                         	tokens.add(Token.BOOLEAN);
                         	tokenLineas.add(numLinea);continue;
-                        case "for": 
-                        	tokens.add(Token.FOR); 
+                        case "break": 
+                        	tokens.add(Token.BREAK); 
+                        	tokenLineas.add(numLinea);continue;
+                        case "case": 
+                        	tokens.add(Token.CASE); 
+                        	tokenLineas.add(numLinea);continue;
+                        case "float": 
+                        	tokens.add(Token.FLOAT); 
                         	tokenLineas.add(numLinea);continue;
                         case "function": 
                         	tokens.add(Token.FUNCTION); 
@@ -177,14 +232,14 @@ public class AnalizadorLexico {
                         case "if": 
                         	tokens.add(Token.IF); 
                         	tokenLineas.add(numLinea);continue;
-                        case "input": 
-                        	tokens.add(Token.INPUT); 
-                        	tokenLineas.add(numLinea);continue;
                         case "int": 
                         	tokens.add(Token.INT); 
                         	tokenLineas.add(numLinea);continue;
-                        case "output": 
-                        	tokens.add(Token.OUTPUT); 
+                        case "let": 
+                        	tokens.add(Token.LET); 
+                        	tokenLineas.add(numLinea);continue;
+                        case "read": 
+                        	tokens.add(Token.READ); 
                         	tokenLineas.add(numLinea);continue;
                         case "return": 
                         	tokens.add(Token.RETURN); 
@@ -192,8 +247,11 @@ public class AnalizadorLexico {
                         case "string": 
                         	tokens.add(Token.STRING); 
                         	tokenLineas.add(numLinea);continue;
-                        case "var":
-                        	tokens.add(Token.VAR); 
+                        case "switch": 
+                        	tokens.add(Token.SWITCH); 
+                        	tokenLineas.add(numLinea);continue;
+                        case "write":
+                        	tokens.add(Token.WRITE); 
                         	tokenLineas.add(numLinea);continue;
                         case "void": 
                         	tokens.add(Token.VOID); 
@@ -201,7 +259,7 @@ public class AnalizadorLexico {
                     }
 
                     // id
-                    if (palabra.matches("[a-zA-Z][a-zA-Z0-9_]*")) {
+                    if (palabra.matches("[A-Za-z_][A-Za-z0-9_]*")) {
                         int identificador;
                         if (tablaSimbolo.containsKey(palabra)) {
                             identificador = tablaSimbolo.get(palabra);
@@ -224,7 +282,8 @@ public class AnalizadorLexico {
             // escribir en token.txt
             BufferedWriter bw = new BufferedWriter(new FileWriter(ficheroToken));
             for (Token token : tokens) {
-                bw.write(token.toString() + "\n");
+                bw.write(token.toString());
+                bw.newLine();
             }
             bw.close();
 
@@ -235,9 +294,12 @@ public class AnalizadorLexico {
             for (Map.Entry<Integer, String> entry : tablaSimbolo2.entrySet()) {
                 String lexema = entry.getValue();
                 String tipo = "entero"; 
-                bw2.write("*'" + lexema + "'\n");
-                bw2.write("+tipo:'" + tipo + "'\n");
-                bw2.write("+despl:" + despl + "\n\n");
+                bw2.write("* LEXEMA : '" + lexema + "'\n");
+                bw2.write("  Atributos :\n");
+                bw2.write("  +tipo: (esto es de tipo int) '" + tipo + "'\n");
+                bw2.write("  +despl: " + despl + "\n");
+                bw2.write("  ------------------\n");
+                bw2.newLine();
                 despl += 4;
             }
             bw2.close();
@@ -245,7 +307,8 @@ public class AnalizadorLexico {
             // escribir en tablaSimbolo2.txt
             BufferedWriter bw3 = new BufferedWriter(new FileWriter(ficheroTabla2));
             for (Map.Entry<Integer, String> entry : tablaSimbolo2.entrySet()) {
-                bw3.write(entry.getKey() + "=" + entry.getValue() + "\n");
+                bw3.write(entry.getKey() + "=" + entry.getValue());
+                bw3.newLine();
             }
             bw3.close();
 
@@ -253,7 +316,8 @@ public class AnalizadorLexico {
             if (!errorList.isEmpty()) {
                 BufferedWriter bw4 = new BufferedWriter(new FileWriter(ficheroError));
                 for (String error : errorList) {
-                    bw4.write(error + "\n");
+                    bw4.write(error);
+                    bw4.newLine();
                 }
                 bw4.close();
             }
@@ -261,7 +325,8 @@ public class AnalizadorLexico {
             //escribir en tokenlineas
             BufferedWriter bw5 = new BufferedWriter(new FileWriter(ficheroTokenLinea));
             for (int linea : tokenLineas) {
-                bw5.write(linea + "\n");
+                bw5.write(linea);
+                bw5.newLine();
             }
             bw5.close();
 
