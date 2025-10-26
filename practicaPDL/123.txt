@@ -1,0 +1,10 @@
+switch (dia)
+{
+   case 1: write "lunes";
+   case 2: write "martes";
+   case 3: write "miércoles";
+   case 4: write "jueves";
+   case 5: 
+           write "viernes";
+   default: write"fiesta";
+} // si dia == 4, se imprimirá: jueves viernes fiesta

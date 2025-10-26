@@ -53,7 +53,7 @@ public class AnalizadorLexico {
                 }
 
                 // para separar los signos y las palabras
-                String regex = "(?=[(){};,:+=!|])|(?<=[(){};,:+=!|])";
+                String regex = "(?=[(){};,:+=!|\"])|(?<=[(){};,:+=!|\"])";
                 String[] palabras = line.split("\\s+|" + regex);
                 
                 for (int i = 0; i < palabras.length; i++) {
@@ -172,7 +172,7 @@ public class AnalizadorLexico {
                         String frag = palabra.substring(1);
                         if (palabra.endsWith("\"") && palabra.length() > 1) {
                             // caso "..."
-                            String contenido = frag.substring(0, frag.length() - 1);
+                            String contenido = frag.substring(0, frag.length() - 1).trim();
                             contador = contenido.length();
                             if (contador <= 64) {
                                 tokens.add(new Token("cadena", "\"" + contenido + "\""));
@@ -190,19 +190,28 @@ public class AnalizadorLexico {
                                     // último fragmento
                                     String cuerpo = siguiente.substring(0, siguiente.length() - 1);
                                     contador += 1 /*espacio*/ + cuerpo.length();
-                                    sb.append(" ").append(cuerpo);
+                                    if (!cuerpo.isEmpty() && ".,;:!?".indexOf(cuerpo.charAt(0)) >= 0) {
+                                        sb.append(cuerpo);
+                                    } else {
+                                        sb.append(" ").append(cuerpo);
+                                    }
                                     cerrado = true;
                                     break;
                                 } else {
                                     contador += 1 /*espacio*/ + siguiente.length();
-                                    sb.append(" ").append(siguiente);
+                                    if (!siguiente.isEmpty() && ".,;:!?".indexOf(siguiente.charAt(0)) >= 0) {
+                                        sb.append(siguiente);          // 不加空格
+                                    } else {
+                                        sb.append(" ").append(siguiente);
+                                    }
                                 }
                             }
                             if (!cerrado) {
                                 reportError(numLinea, "Error: cadena sin comillas de cierre");
                             } else {
+                            	String contenidoFinal = sb.toString().trim();
                                 if (contador <= 64) {
-                                    tokens.add(new Token("cadena", "\"" + sb.toString() + "\""));
+                                    tokens.add(new Token("cadena", "\"" + contenidoFinal + "\""));
                                     tokenLineas.add(numLinea);
                                 } else {
                                     reportError(numLinea, "Error: Longitud de cadena excedida (>64)");
@@ -325,7 +334,7 @@ public class AnalizadorLexico {
             //escribir en tokenlineas
             BufferedWriter bw5 = new BufferedWriter(new FileWriter(ficheroTokenLinea));
             for (int linea : tokenLineas) {
-                bw5.write(linea);
+                bw5.write(Integer.toString(linea));
                 bw5.newLine();
             }
             bw5.close();

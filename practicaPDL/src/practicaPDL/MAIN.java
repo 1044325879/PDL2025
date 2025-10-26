@@ -7,13 +7,13 @@ public class MAIN {
 	
 	public static void main(String[] args) throws Exception {
 		
-		String nombreFichero="Ejemplo 5.txt";
-		//String nombreFichero="PIdG104 (13).txt";
+		String nombreFichero="PIdG107 (10).txt";
+		//String nombreFichero="PIdG104 (5).txt";
 		AnalizadorLexico aLex= new AnalizadorLexico(nombreFichero);
-		if(true) {
+		/*if(true) {
 			AnalizadorSintactico sintactico = new AnalizadorSintactico("token.txt");
 			sintactico.analizar();
-		}
+		}*/
 	}
 
 }

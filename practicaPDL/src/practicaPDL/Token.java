@@ -101,12 +101,9 @@ public class Token {
 	    if (this.atributoI != -1) {
 	        // Tiene atributo entero (por ejemplo índice o valor numérico)
 	        return "<" + this.codigo + "," + this.atributoI + ">";
-	    } else if (this.atributo != null) {
+	    } else{
 	        // Tiene atributo tipo String (por ejemplo lexema)
 	        return "<" + this.codigo + "," + this.atributo + ">";
-	    } else {
-	        // No tiene atributo (por ejemplo símbolos como , ; { } )
-	        return "<" + this.codigo + ",->";
 	    }
 	}
 	

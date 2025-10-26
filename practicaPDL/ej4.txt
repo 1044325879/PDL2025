@@ -1,0 +1,57 @@
+//** No se debe cambiar el ejemplo hasta que lo indique el profesor **/
+var string  s ;var int a ;
+var  boolean bb ;
+
+
+function void put (string s, int RR)	
+{
+	var boolean s_s;
+	output pp;
+	output("++++Helloooooooooooooooooooooooooooooooooooooooooooooooooooooooo!!");
+	RR= 88;
+		output(s)
+	;if (bb) return kk;
+	output RR;		//output (4 + a + 987 +33);
+}	
+
+kk=3322;
+
+function int  RR (int put, boolean b_)//*function*/
+{
+	input(kk);
+	var boolean log;
+	a= 32100 + put + b_  	;	
+	if (b_ || log)	return b;
+	//a=put + RR(put, bb);	
+	return a;	
+}
+
+var string s_s;
+
+RR = a;
+
+//function  string cadena (void)
+//{
+//	var string kk;
+//	if ((a != 91) || bb) 
+//	{put ("{$}", RR(a, bb));
+//	var string xx;
+//	xx= s_s;
+//	if (bb) if (bb) 
+//		return xx;
+//	}
+//		s = "";
+//		return s;
+//	xx= s_s;
+
+
+
+
+//a= RR (5, bb, kk);
+//output put (kk, a);
+return s;
+var boolean kk ;
+
+//s_s=cadena();
+
+a= 000091 != 8 + a;

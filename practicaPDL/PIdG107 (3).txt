@@ -1,0 +1,9 @@
+let int x  = "1";let int num  = 1;
+continue;
+output(num,n1);read{num};function string hola (void hola){}
+let aaaaa99999 float
+if (k_bb_) then 
+aaaaa99999 = aaaaa999999+9876;
+let uu float;
+call hola();
+

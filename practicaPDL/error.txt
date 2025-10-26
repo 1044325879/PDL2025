@@ -1,3 +1,2 @@
-[Sint¨¢ctico]: Error en la l¨ªnea 11: Hay una expresi¨®n con dos operandos, pero sin operador. El segundo operando es "hola"")
-[Sint¨¢ctico]: Error en la l¨ªnea 20: Se esperaba: puntoComa pero se encontr¨®: par
-[Sint¨¢ctico]: Error en la l¨ªnea 20: Se esperaba: lla con atributo 2 pero se encontr¨®: <par,1>
+Linea 5 Error: Longitud de cadena excedida (>64)
+Linea 21 Error: constante entera fuera del rango 32769

@@ -1,29 +1,55 @@
-CONTENIDOS DE LA TABLA #1 (global):
-*'y1'
-+Tipo:'int'
-+Despl:'0'
+CONTENIDOS DE LA TABLA #1:
+* LEXEMA : 'a'
+  Atributos :
+  +tipo: (esto es de tipo int) 'entero'
+  +despl: 0
+  ------------------
 
-*'z'
-+Tipo:'string'
-+Despl:'1'
+* LEXEMA : 'b'
+  Atributos :
+  +tipo: (esto es de tipo int) 'entero'
+  +despl: 4
+  ------------------
 
-*'Func1'
-+Tipo:'function'
-+Despl:'-'
-+numParam:'0'
-+TipoRetorno:'int'
-+EtiqFuncion:'Func1'
+* LEXEMA : 'cc'
+  Atributos :
+  +tipo: (esto es de tipo int) 'entero'
+  +despl: 8
+  ------------------
 
-*'Func2'
-+Tipo:'function'
-+Despl:'-'
-+numParam:'0'
-+TipoRetorno:'int'
-+EtiqFuncion:'Func2'
+* LEXEMA : 'number'
+  Atributos :
+  +tipo: (esto es de tipo int) 'entero'
+  +despl: 12
+  ------------------
 
-CONTENIDOS DE LA TABLA #2 (Func1):
-*'w'
-+Tipo:'boolean'
-+Despl:'0'
+* LEXEMA : 'real'
+  Atributos :
+  +tipo: (esto es de tipo int) 'entero'
+  +despl: 16
+  ------------------
 
-CONTENIDOS DE LA TABLA #3 (Func2):
+* LEXEMA : 'num1'
+  Atributos :
+  +tipo: (esto es de tipo int) 'entero'
+  +despl: 20
+  ------------------
+
+* LEXEMA : 'operacion'
+  Atributos :
+  +tipo: (esto es de tipo int) 'entero'
+  +despl: 24
+  ------------------
+
+* LEXEMA : 'num2'
+  Atributos :
+  +tipo: (esto es de tipo int) 'entero'
+  +despl: 28
+  ------------------
+
+* LEXEMA : 'res'
+  Atributos :
+  +tipo: (esto es de tipo int) 'entero'
+  +despl: 32
+  ------------------
+
