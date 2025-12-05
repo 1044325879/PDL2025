@@ -1,2 +1,4 @@
-Linea 5 Error: Longitud de cadena excedida (>64)
-Linea 21 Error: constante entera fuera del rango 32769
+[Sintáctico]: Error en la línea 30: Tipo no válido: void
+[Sintáctico]: Error en la línea 30: Se esperaba: id pero se encontró: void
+[Sintáctico]: Error en la línea 30: Se esperaba: puntoComa pero se encontró: void
+[Sintáctico]: Error en la línea 30: Se esperaba: lla con atributo 2 pero se encontró: <void,null>

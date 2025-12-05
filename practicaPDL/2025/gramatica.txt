@@ -1,0 +1,81 @@
+Terminales = { case default break boolean float function if int let read return string switch void write autoincremento suma or dist id conste constr cadena = , ; : ( ) { } }
+
+NoTerminales = { P B S S1 L Q X T F H A K C E E1 R R1 U U1 V V1 W }
+
+Axioma = P
+
+Producciones = {
+
+P -> B P
+P -> F P
+P -> lambda
+
+B -> if ( E ) S
+B -> let T id ;
+B -> switch ( E ) { W }
+B -> S
+
+S -> id S1
+S -> write E ;
+S -> read id ;
+S -> return X ;
+S -> break ;
+
+S1 -> = E ;
+S1 -> ( L ) ;
+S1 -> autoincremento ;
+
+L -> E Q
+L -> lambda
+
+Q -> , E Q
+Q -> lambda
+
+X -> E
+X -> lambda
+
+T -> int
+T -> float
+T -> boolean
+T -> string
+
+F -> function H id ( A ) { C }
+
+H -> T
+H -> void
+
+A -> T id K
+A -> void
+
+K -> , T id K
+K -> lambda
+
+C -> B C
+C -> lambda
+
+W -> case conste : C W
+W -> default : C
+W -> lambda
+
+E -> R E1
+E1 -> or R E1
+E1 -> lambda
+
+R -> U R1
+R1 -> dist U R1
+R1 -> lambda
+
+U -> V U1
+U1 -> suma V U1
+U1 -> lambda
+
+V -> id V1
+V -> ( E )
+V -> conste
+V -> constr
+V -> cadena
+
+V1 -> autoincremento
+V1 -> ( L )
+V1 -> lambda
+}

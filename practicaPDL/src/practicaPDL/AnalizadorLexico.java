@@ -45,15 +45,25 @@ public class AnalizadorLexico {
             while ((line = br.readLine()) != null) {
             	//situamos en linea actual
                 numLinea++;
-
+                /*
                 // para comentarios
                 if (line.contains("//")) {
                     line = line.substring(0, line.indexOf("//"));
                     if (line.trim().isEmpty()) continue;
+                }*/
+                int pos = line.indexOf("//");
+                if (pos != -1) {
+                    String before = line.substring(0, pos);
+                    long countQuotes = before.chars().filter(ch -> ch == '"').count();
+                    if (countQuotes % 2 == 0) {
+                        line = before;
+                        if (line.trim().isEmpty()) continue;
+                    }
                 }
 
                 // para separar los signos y las palabras
-                String regex = "(?=[(){};,:+=!|\"])|(?<=[(){};,:+=!|\"])";
+                //String regex = "(?=[(){};,:+=!|\"])|(?<=[(){};,:+=!|\"])";
+                String regex = "(?=[(){};,:+=!|])|(?<=[(){};,:+=!|])";
                 String[] palabras = line.split("\\s+|" + regex);
                 
                 for (int i = 0; i < palabras.length; i++) {

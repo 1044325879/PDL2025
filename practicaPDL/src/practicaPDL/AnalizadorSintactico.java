@@ -18,6 +18,7 @@ public class AnalizadorSintactico {
 
     public AnalizadorSintactico(String rutaToken) throws IOException {
         this.tokens = cargarTokens(rutaToken);
+        //if (tokens.isEmpty()) throw new IOException("token.txt vacío");
         this.indice = 0;
         this.tokenActual = tokens.get(indice);//obtener todos los tokens que hay en fichero
         this.parseOut = new BufferedWriter(new FileWriter("parse.txt"));
@@ -59,6 +60,7 @@ public class AnalizadorSintactico {
         }
         //final de fichero
         lista.add(new Token("EOF", "-"));
+        br.close();
         return lista;
     }
     
@@ -74,8 +76,8 @@ public class AnalizadorSintactico {
     
     public void analizar() throws Exception {
         try {
-        	//comienza por s
-            S();
+        	//comienza por P
+            P();
             if (!tokenActual.getCodigo().equals("EOF")) {
                 //error("Tokens extra al final del programa. Último token: " + tokenActual);
             } else {
@@ -130,11 +132,12 @@ public class AnalizadorSintactico {
         System.err.println(mensaje);
         GestorError.agregar("Sintáctico", mensaje);
     }
-
+    //没测
     private String getIdNombre() {
         return idnombre.get(tokenActual.getAtributoI());
     }
     
+    //也没测
     private String extraerId(Token token) {
         if (token.getCodigo().equals("id")) {
             //return token.getAtributo();
@@ -143,397 +146,409 @@ public class AnalizadorSintactico {
             return "<desconocido>";
         }
     }
+    
+    private void P() throws IOException {
+        String c = tokenActual.getCodigo();
+        if (c.equals("if") || c.equals("let") || c.equals("switch") ||
+            c.equals("id") || c.equals("write") || c.equals("read") ||
+            c.equals("return")) {
+            parseOut.write("1 ");//P->BP
+            B();
+            P();
+        } else if (c.equals("function")) {
+            parseOut.write("2 ");//P->FP
+            F();
+            P();
+        } else {
+            parseOut.write("3 ");//P->lambda
+            // lambda
+        }
+    }
+    
+    private void B() throws IOException {
+        switch (tokenActual.getCodigo()) {
+	        case "if":
+	            parseOut.write("4 ");//B->if (E) S
+	            emparejar("if");
+	            emparejar("par", 1);
+	            E();
+	            emparejar("par", 2);
+	            S();
+	            break;
+	            
+	        case "let": {
+	            parseOut.write("5 ");//B->let T id;
+	            emparejar("let");
+	            String tipo = T();
+	            String nombreVar = getIdNombre();//para semantica
+	            emparejar("id");
+	            sem.declararVariable(nombreVar, tipo);
+	            emparejar("puntoComa");
+	            break;
+	        }
+            
+            case "switch":
+                parseOut.write("6 ");//B->switch(E){W}
+                emparejar("switch");
+                emparejar("par", 1);
+                E();
+                emparejar("par", 2);
+                emparejar("lla", 1);
+                W();
+                emparejar("lla", 2);
+                break;
+            
+            default:
+                parseOut.write("7 ");//B->S
+                S();
+                break;
+        }
+    }
+    
 
     private void S() throws IOException {
-        parseOut.write("1 ");//S->A
-        A();
+        String c = tokenActual.getCodigo();
+        switch (c) {
+            case "id":
+                parseOut.write("8 ");//S->id S1
+                // aquí podría usarse el nombre para semántica
+                emparejar("id");
+                S1();
+                break;
+            case "write":
+                parseOut.write("9 ");//S->write E;
+                emparejar("write");
+                E();
+                emparejar("puntoComa");
+                break;
+            case "read":
+                parseOut.write("10 ");//S->read id;
+                emparejar("read");
+                emparejar("id");
+                emparejar("puntoComa");
+                break;
+            case "return":
+                parseOut.write("11 ");//S->return X;
+                emparejar("return");
+                X();
+                emparejar("puntoComa");
+                break;
+            case "break":
+                parseOut.write("12 ");   //S->break;
+                emparejar("break");
+                emparejar("puntoComa");
+                break;
+            default:
+                error("Sentencia no válida. Se esperaba id, write, read o return.");
+        }
+    }
+    
+    private void S1() throws IOException {
+        String c = tokenActual.getCodigo();
+        if (c.equals("igual")) {
+            parseOut.write("13 ");//S1->=E;
+            emparejar("igual");
+            E();
+            emparejar("puntoComa");
+        } else if (c.equals("par") && tokenActual.getAtributoI() == 1) {
+            parseOut.write("14 ");//S1->(L);
+            emparejar("par", 1);
+            L();
+            emparejar("par", 2);
+            emparejar("puntoComa");
+        } else if (c.equals("autoincremento")) {
+            parseOut.write("15 ");//S1->autoincremento;
+            emparejar("autoincremento");
+            emparejar("puntoComa");
+        } else {
+            error("Se esperaba '=', '(' o 'autoincremento' después de id.");
+        }
+    }
+    
+    private void L() throws IOException {
+        if (esInicioDeE()) {
+            parseOut.write("16 ");//L->EQ
+            E();
+            Q();
+        } else {
+            parseOut.write("17 ");//L->lambda
+            // lambda
+        }
+    }
+    
+    private void Q() throws IOException {
+        if (tokenActual.getCodigo().equals("coma")) {//Q->,EQ
+            parseOut.write("18 ");
+            emparejar("coma");
+            E();
+            Q();
+        } else {
+            parseOut.write("19 ");//Q->lambda
+            // lambda
+        }
+    }
+    
+    private void X() throws IOException {
+        if (esInicioDeE()) {
+            parseOut.write("20 ");//X->E
+            E();
+        } else {
+            parseOut.write("21 ");//X->lambda
+            // lambda
+        }
+    }
+    
+    private String T() throws IOException {
+        String c = tokenActual.getCodigo();
+        switch (c) {
+            case "int":
+                parseOut.write("22 ");//T->int
+                emparejar("int");
+                return "int";
+            case "float":
+                parseOut.write("23 ");//T->float
+                emparejar("float");
+                return "float";
+            case "boolean":
+                parseOut.write("24 ");//T->boolean
+                emparejar("boolean");
+                return "boolean";
+            case "string":
+                parseOut.write("25 ");//T->string
+                emparejar("string");
+                return "string";
+            default:
+                error("Tipo no válido: " + c);
+                return "indefinido";
+        }
+    }
+    
+    private void F() throws IOException {
+        parseOut.write("26 ");//F->function H id(A){C}
+        emparejar("function");
+
+        String tipoFuncion = H();
+
+        // nombre de la función
+        String nombreFunc = getIdNombre();
+        emparejar("id");
+
+        emparejar("par", 1);
+
+        List<String> parametrosTipo = new ArrayList<>();
+        List<String> parametrosNombre = new ArrayList<>();
+        A(parametrosTipo, parametrosNombre);
+
+        // acción semántica: inicio de función
+        sem.iniciarFuncion(nombreFunc, tipoFuncion, parametrosTipo);
+        for (int i = 0; i < parametrosTipo.size(); i++) {
+            sem.declararParametro(parametrosNombre.get(i), parametrosTipo.get(i));
+        }
+
+        emparejar("par", 2);
+        emparejar("lla", 1);
+        C();
+        sem.terminarFuncion();
+        emparejar("lla", 2);
+    }
+    
+    private String H() throws IOException {
+        if (tokenActual.getCodigo().equals("void")) {
+            parseOut.write("28 ");//H->T
+            emparejar("void");
+            return "void";
+        } else {
+            parseOut.write("27 ");//H->void
+            return T();
+        }
     }
 
-    private void A() throws IOException {
-        if (esInicioDeB(tokenActual.getCodigo())) {
-            parseOut.write("2 ");//A->BA
-            B();
-            A();
+    private void A(List<String> paramTipos, List<String> paramNombres) throws IOException {
+        String c = tokenActual.getCodigo();
+        if (c.equals("void")) {
+            parseOut.write("30 ");//A->void
+            emparejar("void");
+            // sin parámetros
+        } else if (c.equals("int") || c.equals("float") ||
+                   c.equals("boolean") || c.equals("string")) {
+            parseOut.write("29 ");//A->T id K
+            String tipo = T();
+            String nombre = getIdNombre();
+            emparejar("id");
+            paramTipos.add(tipo);
+            paramNombres.add(nombre);
+            K(paramTipos, paramNombres);
         } else {
-            parseOut.write("3 ");//A->lambda
+            error("Error en parámetros de función. Se esperaba tipo o void.");
+        }
+    }
+    
+    private void K(List<String> paramTipos, List<String> paramNombres) throws IOException {
+        if (tokenActual.getCodigo().equals("coma")) {
+            parseOut.write("31 ");//K->,T id K
+            emparejar("coma");
+            String tipo = T();
+            String nombre = getIdNombre();
+            emparejar("id");
+            paramTipos.add(tipo);
+            paramNombres.add(nombre);
+            K(paramTipos, paramNombres);
+        } else {
+            parseOut.write("32 ");//K->lambda
+            // lambda
+        }
+    }
+    
+    private void C() throws IOException {
+        String c = tokenActual.getCodigo();
+        if (c.equals("if") || c.equals("let") || c.equals("switch") ||
+            c.equals("id") || c.equals("write") || c.equals("read") ||
+            c.equals("return")|| c.equals("break")) {
+            parseOut.write("33 ");//C->BC
+            B();
+            C();
+        } else {
+            parseOut.write("34 ");//C->lambda
+            // lambda
+        }
+    }
+    
+    private void W() throws IOException {
+        String c = tokenActual.getCodigo();
+        if (c.equals("case")) {
+            parseOut.write("35 ");//W->case conste : CW
+            emparejar("case");
+            emparejar("conste");
+            emparejar("dospuntos");
+            C();
+            W();
+        } else if (c.equals("default")) {
+            parseOut.write("36 ");//W->default : c
+            emparejar("default");
+            emparejar("dospuntos");
+            C();
+        } else {
+            parseOut.write("37 ");//W->lambda
+            // lambda
+        }
+    }
+    
+    private void E() throws IOException {
+        parseOut.write("38 ");//E->RE1
+        R();
+        E1();
+    }
+
+    private void E1() throws IOException {
+        if (tokenActual.getCodigo().equals("or")) {
+            parseOut.write("39 ");//E1->or RE1
+            emparejar("or");
+            R();
+            E1();
+        } else {
+            parseOut.write("40 ");//E1->lambda
+            // lambda
+        }
+    }
+    
+    private void R() throws IOException {
+        parseOut.write("41 ");//R->UR1
+        U();
+        R1();
+    }
+
+    private void R1() throws IOException {
+        if (tokenActual.getCodigo().equals("dist")) {
+            parseOut.write("42 ");//R1->dist U R1
+            emparejar("dist");
+            U();
+            R1();
+        } else {
+            parseOut.write("43 ");//R1->lambda
+            // lambda
+        }
+    }
+    
+    private void U() throws IOException {
+        parseOut.write("44 ");//U->VU1
+        V();
+        U1();
+    }
+
+    private void U1() throws IOException {
+        if (tokenActual.getCodigo().equals("suma")) {
+            parseOut.write("45 ");//U1->suma VU1
+            emparejar("suma");
+            V();
+            U1();
+        } else {
+            parseOut.write("46 ");//U1->lambda
+            // lambda
+        }
+    }
+    
+    private void V() throws IOException {
+        String c = tokenActual.getCodigo();
+        switch (c) {
+            case "id":
+                parseOut.write("47 ");//V->id V1
+                emparejar("id");
+                V1();
+                break;
+            case "par":
+                if (tokenActual.getAtributoI() == 1) {
+                    parseOut.write("48 ");//V->(E)
+                    emparejar("par", 1);
+                    E();
+                    emparejar("par", 2);
+                } else {
+                    error("Se esperaba '(' en factor.");
+                }
+                break;
+            case "conste":
+                parseOut.write("49 ");//V->conste
+                emparejar("conste");
+                break;
+            case "constr":
+                parseOut.write("50 ");//V->constr
+                emparejar("constr");
+                break;
+            case "cadena":
+                parseOut.write("51 ");//V->cadena
+                emparejar("cadena");
+                break;
+            default:
+                error("Factor no válido: " + c);
+        }
+    }
+    
+    private void V1() throws IOException {
+        String c = tokenActual.getCodigo();
+        if (c.equals("autoincremento")) {
+            parseOut.write("52 ");//V1->autoincremento
+            emparejar("autoincremento");
+        } else if (c.equals("par") && tokenActual.getAtributoI() == 1) {
+            parseOut.write("53 ");//V2->(L)
+            emparejar("par", 1);
+            L();
+            emparejar("par", 2);
+        } else {
+            parseOut.write("54 ");//V1->lambda
+            // lambda
         }
     }
 
     private boolean esInicioDeB(String codigo) {
-        return codigo.equals("var") || codigo.equals("if") || codigo.equals("for") ||
-               codigo.equals("function") || codigo.equals("return") || codigo.equals("input") ||
-               codigo.equals("output") || codigo.equals("id");
-    }
-
-    private void B() throws IOException {
-        switch (tokenActual.getCodigo()) {
-	        case "var": {
-	            parseOut.write("4 ");//B->var C id B1
-	            emparejar("var");
-	            String tipo = C();
-	            String nombreVar = getIdNombre();
-	            emparejar("id");
-	            sem.declararVariable(nombreVar, tipo);
-	            B1();
-	            break;
-	        }
-
-            case "if":
-                parseOut.write("7 ");//B->if (E) F
-                emparejar("if");
-                emparejar("par", 1);
-                E();
-                emparejar("par", 2);
-                F();
-                break;
-            case "for":
-                parseOut.write("8 ");//B->for(G){H}
-                emparejar("for");
-                emparejar("par", 1);
-                G();
-                emparejar("par", 2);
-                emparejar("lla", 1);
-                H();
-                emparejar("lla", 2);
-                break;
-            case "function":
-                parseOut.write("9 ");//B->function C id (I){H}
-                emparejar("function");
-                tipoActual = tokenActual.getCodigo();
-                String tipoFuncion = tokenActual.getCodigo();
-                C();
-                idActual = extraerId(tokenActual);
-                String nombreFunc = extraerId(tokenActual);
-                emparejar("id");
-                emparejar("par", 1);
-                List<String> parametrosTipo = new ArrayList<>();
-                List<String> parametrosNombre = new ArrayList<>();
-                I();
-                sem.iniciarFuncion(nombreFunc, tipoFuncion, parametrosTipo);
-                for (int i = 0; i < parametrosTipo.size(); i++)
-                    sem.declararParametro(parametrosNombre.get(i), parametrosTipo.get(i));
-                emparejar("par", 2);
-                emparejar("lla", 1);
-                H();
-                sem.terminarFuncion();
-                emparejar("lla", 2);
-                break;
-            default:
-                parseOut.write("10 ");//B->F
-                F();
-                break;
-        }
-    }
-
-    private void B1() throws IOException {
-        if (tokenActual.getCodigo().equals("puntoComa")) {
-            parseOut.write("5 ");//B1->;
-            emparejar("puntoComa");
-        } else if (tokenActual.getCodigo().equals("asig")) {
-            parseOut.write("6 ");//B1->=D;
-            emparejar("asig");
-            D();
-            emparejar("puntoComa");
-        } else {
-            error("Se esperaba ';' o '=' en declaración");
-        }
-    }
-
-    private String C() throws IOException {
-        String tipo = tokenActual.getCodigo();
-        if (tipo.equals("int")) {
-            parseOut.write("11 ");
-            emparejar("int");
-            return "int";
-        } else if (tipo.equals("boolean")) {
-            parseOut.write("12 ");
-            emparejar("boolean");
-            return "boolean";
-        } else if (tipo.equals("string")) {
-            parseOut.write("13 ");
-            emparejar("string");
-            return "string";
-        } else if (tipo.equals("void")) {
-            parseOut.write("14 ");
-            emparejar("void");
-            return "void";
-        } else {
-            error("Tipo no válido: " + tipo);
-            return "indefinido";
-        }
-    }
-
-    private void D() throws IOException {
-        parseOut.write("15 "); // D->D2 D1
-        D2();
-        D1();
-    }
-
-    private void D1() throws IOException {
-        if (tokenActual.getCodigo().equals("suma")) { // +
-            parseOut.write("16 "); // D1-> + D2 D1
-            avanzar();
-            D2();
-            D1();
-        }else if (
-                tokenActual.getCodigo().equals("constante_entera") ||
-                tokenActual.getCodigo().equals("id") ||
-                tokenActual.getCodigo().equals("cadena")
-            ) {
-                String segundoLexema = tokenActual.getLexema();
-                error("Hay una expresión con dos operandos, pero sin operador. El segundo operando es " + segundoLexema+ ")");
-                avanzar();
-                D1();
-            } else {
-            parseOut.write("17 "); // D' -> lambda
-        }
-    }
-
-    private void D2() throws IOException {
-        switch (tokenActual.getCodigo()) {
-            case "constante_entera":
-                parseOut.write("18 ");//D2->constante
-                avanzar();
-                break;
-            case "id":
-                parseOut.write("19 ");//D2->id
-                avanzar();
-                break;
-            case "cadena":
-                parseOut.write("20 ");//D2->cadena
-                avanzar();
-                break;
-            default:
-                error("Expresión no válida: " + tokenActual.getCodigo());
-                return;
-        }
-    }
-
-
-    private void E() throws IOException {
-        parseOut.write("21 ");//E->E1 E2
-        E1();
-        E2();
+        return codigo.equals("let") || codigo.equals("if") || codigo.equals("switch") ||
+               codigo.equals("function") || codigo.equals("write") || codigo.equals("read") ||
+               codigo.equals("return") || codigo.equals("id");
     }
     
-    private void E1() throws IOException{
-    	parseOut.write("22 ");//E1->D
-    	D();
+    private boolean esInicioDeE() {
+        String c = tokenActual.getCodigo();
+        return c.equals("id") || c.equals("conste") || c.equals("constr") ||
+               c.equals("cadena") ||
+               (c.equals("par") && tokenActual.getAtributoI() == 1);
     }
 
-    private void E2() throws IOException {
-        String t = tokenActual.getCodigo();
-        if (t.equals("dist")) {
-        	parseOut.write("23 ");//E2->!=E1 E2
-        	emparejar("dist");
-            E1();
-            E2();
-        }else if(t.equals("or")) {
-        	parseOut.write("24 ");//E2->||E1 E2
-        	emparejar("or");
-            E1();
-            E2();
-        }else {
-        	parseOut.write("25 ");//E2->lambda
-        }
-    }
-
-    private void F() throws IOException {
-        switch (tokenActual.getCodigo()) {
-            case "return":
-                parseOut.write("26 ");//F->return(F2)
-                emparejar("return");
-                if (tokenActual.getCodigo().equals("par") && tokenActual.getAtributoI() == 1) {
-                    emparejar("par", 1);
-                    F2();
-                    emparejar("par", 2);
-                } else {
-                    F2();
-                }
-                emparejar("puntoComa");
-                break;
-            case "input":
-                parseOut.write("27 ");//F->input(F2)
-                emparejar("input");
-                if (tokenActual.getCodigo().equals("par") && tokenActual.getAtributoI() == 1) {
-                    emparejar("par", 1);
-                    F2();
-                    emparejar("par", 2);
-                } else {
-                    F2();
-                }
-                emparejar("puntoComa");
-                break;
-            case "output":
-                parseOut.write("28 ");//F->output(F2)
-                emparejar("output");
-                if (tokenActual.getCodigo().equals("par") && tokenActual.getAtributoI() == 1) {
-                    emparejar("par", 1);
-                    F2();
-                    emparejar("par", 2);
-                } else {
-                    F2();
-                }
-                emparejar("puntoComa");
-                break;
-            default:
-                parseOut.write("29 ");//F->F1
-                F1();
-                break;
-        }
-    }
-    
-    private void F1() throws IOException {
-        parseOut.write("30 ");//F1->id F1_1
-        emparejar("id");
-        F11();
-    }
-
-    private void F11() throws IOException {
-        if (tokenActual.getCodigo().equals("asig")) {
-            parseOut.write("31 ");//F1_1->=E;
-            emparejar("asig");
-            E();
-            emparejar("puntoComa");
-        } else if (tokenActual.getCodigo().equals("operador") && tokenActual.getAtributoI() == 1) {
-            parseOut.write("32 ");//F1_1->+=E;
-            emparejar("operador",1);
-            E();
-            emparejar("puntoComa");
-        } else if (tokenActual.getCodigo().equals("par") && tokenActual.getAtributoI() == 1) {
-            parseOut.write("33 ");//F1_1->(F2);
-            emparejar("par", 1);
-            F2();
-            emparejar("par", 2);
-            emparejar("puntoComa");
-        } else {
-            error("Se esperaba '=' o '+=' o llamada a función en F1_1");
-        }
-    }
-    
-    private void F2() throws IOException {
-        if (tokenActual.getCodigo().equals("id")) {
-            parseOut.write("34 ");//F->id F3
-            avanzar();
-            F3();
-        } else if (tokenActual.getCodigo().equals("constante_entera")) {
-            parseOut.write("35 ");//F2->constante
-            avanzar();
-        } else if (tokenActual.getCodigo().equals("cadena")) {
-            parseOut.write("36 ");//F2->cadena
-            avanzar();
-        } else {
-            parseOut.write("37 ");//F2->lambda
-        }
-    }
-
-    private void F3() throws IOException {
-        if (tokenActual.getCodigo().equals("par") && tokenActual.getAtributoI() == 1) {
-            parseOut.write("38 "); //F3->( F2 )
-            emparejar("par", 1);
-            F2();
-            emparejar("par", 2);
-        } else {
-            parseOut.write("39 "); //F3->lambda
-        }
-    }
-
-
-    private void G() throws IOException {
-        parseOut.write("40 ");//G->G1;E;G1
-        G1();
-        emparejar("puntoComa");
-        E();
-        emparejar("puntoComa");
-        G1();
-    }
-
-    private void G1() throws IOException {
-        if (tokenActual.getCodigo().equals("id")) {
-            parseOut.write("41 ");//G1-> id G1_1
-            emparejar("id");
-            G2();
-        } else if (tokenActual.getCodigo().equals("var")) {
-            parseOut.write("44 ");//G1->var C id =D
-            emparejar("var");
-            C();
-            emparejar("id");
-            emparejar("asig");
-            D();
-        } else {
-            parseOut.write("45 ");//G1->lambda
-        }
-    }
-
-    private void G2() throws IOException {
-        if (tokenActual.getCodigo().equals("asig")) {
-            parseOut.write("42 ");//G1_1->=D
-            emparejar("asig");
-            D();
-        } else if (tokenActual.getCodigo().equals("operador") && tokenActual.getAtributoI() == 1) {
-            parseOut.write("43 ");//G1_1->+=D
-            emparejar("operador", 1);
-            D();
-        } else {
-            error("Se esperaba '=' o '+=' en G1_1");
-        }
-    }
-
-    private void H() throws IOException {
-        if (esInicioDeB(tokenActual.getCodigo())) {
-            parseOut.write("46 ");//H-> BH
-            B();
-            H();
-        } else {
-            parseOut.write("47 ");//H->lambda
-        }
-    }
-
-    private void I() throws IOException {
-        if (tokenActual.getCodigo().equals("void")) {
-            parseOut.write("48 ");//I->void I2
-            emparejar("void");
-            I2();
-        } else if (tokenActual.getCodigo().equals("int")) {
-            parseOut.write("51 ");//i->int id I1
-            emparejar("int");
-            emparejar("id");
-            I1();
-        } else if (tokenActual.getCodigo().equals("boolean")) {
-            parseOut.write("52 ");//I->boolean id I1
-            emparejar("boolean");
-            emparejar("id");
-            I1();
-        } else if (tokenActual.getCodigo().equals("string")) {
-            parseOut.write("53 ");//I->string id I1
-            emparejar("string");
-            emparejar("id");
-            I1();
-        } else {
-            error("Tipo en parámetros de función incorrecto: " + tokenActual.getCodigo());
-        }
-    }
-
-    private void I2() throws IOException {
-        if (tokenActual.getCodigo().equals("id")) {
-            parseOut.write("49 ");//I2->id I1
-            emparejar("id");
-            I1();
-        } else {
-            parseOut.write("50 ");//I2->lambda
-        }
-    }
-
-    private void I1() throws IOException {
-        if (tokenActual.getCodigo().equals("coma")) {
-            parseOut.write("54 ");//I1->,C id I1
-            emparejar("coma");
-            C();
-            emparejar("id");
-            I1();
-        } else {
-            parseOut.write("55 ");//I1-> lambda
-        }
-    }
 }
-

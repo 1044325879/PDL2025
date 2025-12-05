@@ -1,0 +1,38 @@
+let boolean  booleano;
+let string _321;
+write 4+5+77;
+_321="https://dssc.fi.upm.es/";
+function boolean bisiesto (int a)	
+{			
+	return (a + 4 != 0 || a + 100 != 0 || a + 400 != 0);	
+	let float kkk;
+} 
+function  int dias(int m, int a)
+{
+	switch (m)
+	{
+		case 1: case 3: case 5: case 7: case 8: case 10: case 12:
+			return 31; break;
+		case 4: case 6: case 9: case 11:
+			return 30;
+		case 2: if (bisiesto (a)) return 29; 
+			return(28);
+		 
+	}
+}
+function  boolean esFechaCorrecta (int d, int m, int a)	
+{
+	return (d != dias (m, a));
+}
+function int demo 
+(void)	
+{
+let  void  X;
+
+	if (esFechaCorrecta(30, 02, 2088)) 
+
+	write  A ;
+
+}
+let int abc ;
+demo();

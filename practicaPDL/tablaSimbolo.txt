@@ -1,55 +1,97 @@
-CONTENIDOS DE LA TABLA #1:
-* LEXEMA : 'a'
-  Atributos :
-  +tipo: (esto es de tipo int) 'entero'
-  +despl: 0
-  ------------------
+CONTENIDOS DE LA TABLA #1 (global):
+*'booleano'
++Tipo:'boolean'
++Despl:'0'
 
-* LEXEMA : 'b'
-  Atributos :
-  +tipo: (esto es de tipo int) 'entero'
-  +despl: 4
-  ------------------
+*'_321'
++Tipo:'string'
++Despl:'1'
 
-* LEXEMA : 'cc'
-  Atributos :
-  +tipo: (esto es de tipo int) 'entero'
-  +despl: 8
-  ------------------
+*'bisiesto'
++Tipo:'function'
++Despl:'-'
++numParam:'1'
++TipoParam1:'int'
++ModoParam1:'valor'
++TipoRetorno:'boolean'
++EtiqFuncion:'bisiesto'
 
-* LEXEMA : 'number'
-  Atributos :
-  +tipo: (esto es de tipo int) 'entero'
-  +despl: 12
-  ------------------
+*'dias'
++Tipo:'function'
++Despl:'-'
++numParam:'2'
++TipoParam1:'int'
++ModoParam1:'valor'
++TipoParam2:'int'
++ModoParam2:'valor'
++TipoRetorno:'int'
++EtiqFuncion:'dias'
 
-* LEXEMA : 'real'
-  Atributos :
-  +tipo: (esto es de tipo int) 'entero'
-  +despl: 16
-  ------------------
+*'esFechaCorrecta'
++Tipo:'function'
++Despl:'-'
++numParam:'3'
++TipoParam1:'int'
++ModoParam1:'valor'
++TipoParam2:'int'
++ModoParam2:'valor'
++TipoParam3:'int'
++ModoParam3:'valor'
++TipoRetorno:'boolean'
++EtiqFuncion:'esFechaCorrecta'
 
-* LEXEMA : 'num1'
-  Atributos :
-  +tipo: (esto es de tipo int) 'entero'
-  +despl: 20
-  ------------------
+*'demo'
++Tipo:'function'
++Despl:'-'
++numParam:'0'
++TipoRetorno:'int'
++EtiqFuncion:'demo'
 
-* LEXEMA : 'operacion'
-  Atributos :
-  +tipo: (esto es de tipo int) 'entero'
-  +despl: 24
-  ------------------
+CONTENIDOS DE LA TABLA #2 (bisiesto):
+*'a'
++Tipo:'int'
++Despl:'0'
++Param:'Sí'
++ModoParam1:'valor'
 
-* LEXEMA : 'num2'
-  Atributos :
-  +tipo: (esto es de tipo int) 'entero'
-  +despl: 28
-  ------------------
+*'kkk'
++Tipo:'float'
++Despl:'1'
 
-* LEXEMA : 'res'
-  Atributos :
-  +tipo: (esto es de tipo int) 'entero'
-  +despl: 32
-  ------------------
+CONTENIDOS DE LA TABLA #3 (dias):
+*'m'
++Tipo:'int'
++Despl:'0'
++Param:'Sí'
++ModoParam1:'valor'
+
+*'a'
++Tipo:'int'
++Despl:'1'
++Param:'Sí'
++ModoParam2:'valor'
+
+CONTENIDOS DE LA TABLA #4 (esFechaCorrecta):
+*'d'
++Tipo:'int'
++Despl:'0'
++Param:'Sí'
++ModoParam1:'valor'
+
+*'m'
++Tipo:'int'
++Despl:'1'
++Param:'Sí'
++ModoParam2:'valor'
+
+*'a'
++Tipo:'int'
++Despl:'2'
++Param:'Sí'
++ModoParam3:'valor'
+
+CONTENIDOS DE LA TABLA #5 (demo):
+*'null'
++Tipo:'indefinido'
++Despl:'0'
 
